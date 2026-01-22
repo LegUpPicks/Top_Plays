@@ -17,10 +17,14 @@ st.image("legup.png", width=200)
 st.title("Top Plays Analysis")
 st.markdown("---")
 
-# Load data
-@st.cache_data
+# Load data from Google Sheet
+SHEET_ID = "1U1gt5RsN3kOC6ZWQidpmF56wW3qAhwLfPrMJib-WiNg"
+SHEET_NAME = "MASTER"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes to allow refreshing from sheet
 def load_data():
-    df = pd.read_csv("top_plays.csv")
+    df = pd.read_csv(SHEET_URL)
     # Clean up the data - remove rows with missing MASTER values
     df = df[df['MASTER'].notna()].copy()
     # Convert DATE to datetime
@@ -205,7 +209,6 @@ try:
             }
         )
 
-except FileNotFoundError:
-    st.error("Error: top_plays.csv file not found. Please ensure the file is in the same directory as this app.")
 except Exception as e:
-    st.error(f"An error occurred: {str(e)}")
+    st.error(f"Error loading data from Google Sheet: {str(e)}")
+    st.info("Please ensure the Google Sheet is publicly accessible (Anyone with the link can view).")
