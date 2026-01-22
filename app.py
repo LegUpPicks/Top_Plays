@@ -68,8 +68,8 @@ try:
 
     st.markdown("---")
 
-    # Member Statistics Section
-    st.header("Member Statistics")
+    # Analyst Statistics Section
+    st.header("Analyst Statistics")
 
     # Calculate statistics by member
     member_stats = []
@@ -89,7 +89,7 @@ try:
         m_win_rate = (m_wins / m_total * 100) if m_total > 0 else 0
 
         member_stats.append({
-            'Member': member,
+            'Analyst': member,
             'Total Plays': m_total,
             'Wins': m_wins,
             'Losses': m_losses,
@@ -114,7 +114,7 @@ try:
         hide_index=True,
         use_container_width=True,
         column_config={
-            'Member': st.column_config.TextColumn('Member', width='medium'),
+            'Analyst': st.column_config.TextColumn('Analyst', width='medium'),
             'Total Plays': st.column_config.NumberColumn('Total Plays', width='small'),
             'Wins': st.column_config.NumberColumn('Wins', width='small'),
             'Losses': st.column_config.NumberColumn('Losses', width='small'),
@@ -146,23 +146,23 @@ try:
             'DATE': st.column_config.TextColumn('Date', width='small'),
             'PLAY': st.column_config.TextColumn('Play', width='large'),
             'ODDS': st.column_config.TextColumn('Odds', width='small'),
-            'MEMBER': st.column_config.TextColumn('Member', width='medium'),
+            'MEMBER': st.column_config.TextColumn('Analyst', width='medium'),
             'MASTER': st.column_config.TextColumn('Result', width='small'),
             'UNITS_OUT': st.column_config.NumberColumn('Units Risked', width='small', format="%.2f"),
             'UNITS_IN': st.column_config.NumberColumn('Units Won', width='small', format="%.2f")
         }
     )
 
-    # Detailed Member View
+    # Detailed Analyst View
     st.markdown("---")
-    st.header("Detailed Member View")
+    st.header("Detailed Analyst View")
 
-    selected_member = st.selectbox("Select a member to view their plays:", df['MEMBER'].unique())
+    selected_member = st.selectbox("Select an analyst to view their plays:", df['MEMBER'].unique())
 
     if selected_member:
         member_plays = df[df['MEMBER'] == selected_member].sort_values('DATE', ascending=False)
 
-        # Member summary
+        # Analyst summary
         m_df = member_plays
         m_total = len(m_df)
         m_wins = len(m_df[m_df['MASTER'] == 'W'])
