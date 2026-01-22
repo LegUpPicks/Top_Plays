@@ -1,0 +1,10 @@
+[project]
+name = "top-plays-analytics"
+version = "0.1.0"
+description = "Sports betting analytics dashboard using Streamlit"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.31.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+]
