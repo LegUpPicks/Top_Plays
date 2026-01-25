@@ -13,9 +13,7 @@ st.set_page_config(
 # Display logo
 st.image("legup.png", width=200)
 
-# Title
-st.title("Top Plays Analysis")
-st.markdown("---")
+# Title and date filter will be added after data loads
 
 # Load data from Google Sheet
 SHEET_ID = "1U1gt5RsN3kOC6ZWQidpmF56wW3qAhwLfPrMJib-WiNg"
@@ -33,6 +31,24 @@ def load_data():
 
 try:
     df = load_data()
+
+    # Title and Date Filter (same row)
+    min_date = df['DATE'].min().date()
+    max_date = df['DATE'].max().date()
+
+    title_col, _, filter_col1, filter_col2 = st.columns([3, 1, 1, 1])
+
+    with title_col:
+        st.title("Top Plays Analysis")
+    with filter_col1:
+        start_date = st.date_input("From", value=min_date, min_value=min_date, max_value=max_date)
+    with filter_col2:
+        end_date = st.date_input("To", value=max_date, min_value=min_date, max_value=max_date)
+
+    st.markdown("---")
+
+    # Apply date filter
+    df = df[(df['DATE'].dt.date >= start_date) & (df['DATE'].dt.date <= end_date)]
 
     # Overall Statistics Section
     st.header("Overall Statistics")
