@@ -72,6 +72,53 @@ try:
 
     st.markdown("---")
 
+    # Top 5 Analysts Statistics Section (by Net Units)
+    st.header("Top 5 Analysts Statistics (by Net Units)")
+
+    # Calculate net units per analyst and get top 5
+    analyst_net_units = df.groupby('MEMBER').apply(
+        lambda x: x['UNITS_IN'].sum() - x['UNITS_OUT'].sum()
+    ).sort_values(ascending=False)
+    top5_analysts = analyst_net_units.head(5).index.tolist()
+
+    # Filter data to only top 5 analysts
+    top5_df = df[df['MEMBER'].isin(top5_analysts)]
+
+    top5_total_plays = len(top5_df)
+    top5_wins = len(top5_df[top5_df['MASTER'] == 'W'])
+    top5_losses = len(top5_df[top5_df['MASTER'] == 'L'])
+    top5_pushes = len(top5_df[top5_df['MASTER'] == 'P'])
+
+    top5_units_risked = top5_df['UNITS_OUT'].sum()
+    top5_units_won = top5_df['UNITS_IN'].sum()
+    top5_net_units = top5_units_won - top5_units_risked
+    top5_roi = (top5_net_units / top5_units_risked * 100) if top5_units_risked > 0 else 0
+    top5_win_rate = (top5_wins / top5_total_plays * 100) if top5_total_plays > 0 else 0
+
+    # First row: Total Plays, Wins, Losses, Pushes
+    t5_col1, t5_col2, t5_col3, t5_col4 = st.columns(4)
+
+    with t5_col1:
+        st.metric("Total Plays", top5_total_plays)
+    with t5_col2:
+        st.metric("Wins", top5_wins)
+    with t5_col3:
+        st.metric("Losses", top5_losses)
+    with t5_col4:
+        st.metric("Pushes", top5_pushes)
+
+    # Second row: Win Rate, ROI, Net Units (aligned with row above)
+    t5_col5, t5_col6, t5_col7, t5_col8 = st.columns(4)
+
+    with t5_col5:
+        st.metric("Win Rate", f"{top5_win_rate:.1f}%")
+    with t5_col6:
+        st.metric("ROI", f"{top5_roi:+.2f}%")
+    with t5_col7:
+        st.metric("Net Units", f"{top5_net_units:+.2f}")
+
+    st.markdown("---")
+
     # Analyst Statistics Section
     st.header("Analyst Statistics")
 
