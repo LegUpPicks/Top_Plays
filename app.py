@@ -50,44 +50,6 @@ try:
     # Apply date filter
     df = df[(df['DATE'].dt.date >= start_date) & (df['DATE'].dt.date <= end_date)]
 
-    # Overall Statistics Section
-    st.header("Overall Statistics")
-
-    total_plays = len(df)
-    wins = len(df[df['MASTER'] == 'W'])
-    losses = len(df[df['MASTER'] == 'L'])
-    pushes = len(df[df['MASTER'] == 'P'])
-
-    total_units_risked = df['UNITS_OUT'].sum()
-    total_units_won = df['UNITS_IN'].sum()
-    net_units = total_units_won - total_units_risked
-    roi = (net_units / total_units_risked * 100) if total_units_risked > 0 else 0
-    win_rate = (wins / total_plays * 100) if total_plays > 0 else 0
-
-    # First row: Total Plays, Wins, Losses, Pushes
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric("Total Plays", total_plays)
-    with col2:
-        st.metric("Wins", wins)
-    with col3:
-        st.metric("Losses", losses)
-    with col4:
-        st.metric("Pushes", pushes)
-
-    # Second row: Win Rate, ROI, Net Units (aligned with row above)
-    col5, col6, col7, col8 = st.columns(4)
-
-    with col5:
-        st.metric("Win Rate", f"{win_rate:.1f}%")
-    with col6:
-        st.metric("ROI", f"{roi:+.2f}%")
-    with col7:
-        st.metric("Net Units", f"{net_units:+.2f}")
-
-    st.markdown("---")
-
     # Top 5 Analysts Statistics Section (by Net Units)
     st.header("Top 5 Analysts Statistics (by Net Units)")
 
@@ -132,6 +94,44 @@ try:
         st.metric("ROI", f"{top5_roi:+.2f}%")
     with t5_col7:
         st.metric("Net Units", f"{top5_net_units:+.2f}")
+
+    st.markdown("---")
+
+    # Overall Statistics Section
+    st.header("Overall Statistics")
+
+    total_plays = len(df)
+    wins = len(df[df['MASTER'] == 'W'])
+    losses = len(df[df['MASTER'] == 'L'])
+    pushes = len(df[df['MASTER'] == 'P'])
+
+    total_units_risked = df['UNITS_OUT'].sum()
+    total_units_won = df['UNITS_IN'].sum()
+    net_units = total_units_won - total_units_risked
+    roi = (net_units / total_units_risked * 100) if total_units_risked > 0 else 0
+    win_rate = (wins / total_plays * 100) if total_plays > 0 else 0
+
+    # First row: Total Plays, Wins, Losses, Pushes
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric("Total Plays", total_plays)
+    with col2:
+        st.metric("Wins", wins)
+    with col3:
+        st.metric("Losses", losses)
+    with col4:
+        st.metric("Pushes", pushes)
+
+    # Second row: Win Rate, ROI, Net Units (aligned with row above)
+    col5, col6, col7, col8 = st.columns(4)
+
+    with col5:
+        st.metric("Win Rate", f"{win_rate:.1f}%")
+    with col6:
+        st.metric("ROI", f"{roi:+.2f}%")
+    with col7:
+        st.metric("Net Units", f"{net_units:+.2f}")
 
     st.markdown("---")
 
