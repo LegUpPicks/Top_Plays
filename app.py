@@ -30,36 +30,53 @@ def load_data():
     return df
 
 try:
-    df = load_data()
+    df_full = load_data()
 
     # Title and Date Filter (same row)
-    min_date = df['DATE'].min().date()
-    max_date = df['DATE'].max().date()
+    min_date = df_full['DATE'].min().date()
+    max_date = df_full['DATE'].max().date()
 
-    title_col, _, filter_col1, filter_col2 = st.columns([3, 1, 1, 1])
+    # Initialize session state for dates if not set
+    if 'start_date' not in st.session_state:
+        st.session_state.start_date = min_date
+    if 'end_date' not in st.session_state:
+        st.session_state.end_date = max_date
+
+    # Check for reset flag before widgets are created
+    if st.session_state.get('reset_dates', False):
+        st.session_state.start_date = min_date
+        st.session_state.end_date = max_date
+        st.session_state.reset_dates = False
+
+    title_col, _, filter_col1, filter_col2, reset_col = st.columns([3, 1, 1, 1, 0.5])
 
     with title_col:
         st.title("Top Plays Analysis")
     with filter_col1:
-        start_date = st.date_input("From", value=min_date, min_value=min_date, max_value=max_date)
+        start_date = st.date_input("From", min_value=min_date, max_value=max_date, key="start_date")
     with filter_col2:
-        end_date = st.date_input("To", value=max_date, min_value=min_date, max_value=max_date)
+        end_date = st.date_input("To", min_value=min_date, max_value=max_date, key="end_date")
+    with reset_col:
+        st.write("")  # Spacer to align with date inputs
+        if st.button("Reset"):
+            st.session_state.reset_dates = True
+            st.rerun()
 
     st.markdown("---")
 
-    # Apply date filter
-    df = df[(df['DATE'].dt.date >= start_date) & (df['DATE'].dt.date <= end_date)]
+    # Calculate top 5 analysts from ALL data (not filtered)
+    analyst_net_units_all = df_full.groupby('MEMBER').apply(
+        lambda x: x['UNITS_IN'].sum() - x['UNITS_OUT'].sum()
+    ).sort_values(ascending=False)
+    top5_analysts = analyst_net_units_all.head(5).index.tolist()
+
+    # Apply date filter for all other stats
+    df = df_full[(df_full['DATE'].dt.date >= start_date) & (df_full['DATE'].dt.date <= end_date)]
 
     # Top 5 Analysts Statistics Section (by Net Units)
     st.header("Top 5 Analysts Statistics (by Net Units)")
 
-    # Calculate net units per analyst and get top 5
-    analyst_net_units = df.groupby('MEMBER').apply(
-        lambda x: x['UNITS_IN'].sum() - x['UNITS_OUT'].sum()
-    ).sort_values(ascending=False)
-    top5_analysts = analyst_net_units.head(5).index.tolist()
-
-    # Filter data to only top 5 analysts
+    # Filter data to only top 5 analysts (using filtered date range)
     top5_df = df[df['MEMBER'].isin(top5_analysts)]
 
     top5_total_plays = len(top5_df)
@@ -94,6 +111,49 @@ try:
         st.metric("ROI", f"{top5_roi:+.2f}%")
     with t5_col7:
         st.metric("Net Units", f"{top5_net_units:+.2f}")
+
+    # Top 5 Analysts table (analysts based on all-time, stats based on date filter)
+    top5_stats = []
+    for analyst in top5_analysts:
+        analyst_df = df[df['MEMBER'] == analyst]
+        a_total = len(analyst_df)
+        a_wins = len(analyst_df[analyst_df['MASTER'] == 'W'])
+        a_losses = len(analyst_df[analyst_df['MASTER'] == 'L'])
+        a_pushes = len(analyst_df[analyst_df['MASTER'] == 'P'])
+        a_units_risked = analyst_df['UNITS_OUT'].sum()
+        a_units_won = analyst_df['UNITS_IN'].sum()
+        a_net_units = a_units_won - a_units_risked
+        a_roi = (a_net_units / a_units_risked * 100) if a_units_risked > 0 else 0
+        a_win_rate = (a_wins / a_total * 100) if a_total > 0 else 0
+
+        top5_stats.append({
+            'Analyst': analyst,
+            'Total Plays': a_total,
+            'Wins': a_wins,
+            'Losses': a_losses,
+            'Pushes': a_pushes,
+            'Win Rate': f"{a_win_rate:.1f}%",
+            'Net Units': f"{a_net_units:+.2f}",
+            'ROI': f"{a_roi:+.2f}%"
+        })
+
+    top5_stats_df = pd.DataFrame(top5_stats)
+
+    st.dataframe(
+        top5_stats_df,
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            'Analyst': st.column_config.TextColumn('Analyst', width='medium'),
+            'Total Plays': st.column_config.NumberColumn('Total Plays', width='small'),
+            'Wins': st.column_config.NumberColumn('Wins', width='small'),
+            'Losses': st.column_config.NumberColumn('Losses', width='small'),
+            'Pushes': st.column_config.NumberColumn('Pushes', width='small'),
+            'Win Rate': st.column_config.TextColumn('Win Rate', width='small'),
+            'Net Units': st.column_config.TextColumn('Net Units', width='medium'),
+            'ROI': st.column_config.TextColumn('ROI', width='small')
+        }
+    )
 
     st.markdown("---")
 
@@ -162,8 +222,6 @@ try:
             'Losses': m_losses,
             'Pushes': m_pushes,
             'Win Rate': f"{m_win_rate:.1f}%",
-            'Units Risked': f"{m_units_risked:.2f}",
-            'Units Won': f"{m_units_won:.2f}",
             'Net Units': f"{m_net_units:+.2f}",
             'ROI': f"{m_roi:+.2f}%"
         })
@@ -187,8 +245,6 @@ try:
             'Losses': st.column_config.NumberColumn('Losses', width='small'),
             'Pushes': st.column_config.NumberColumn('Pushes', width='small'),
             'Win Rate': st.column_config.TextColumn('Win Rate', width='small'),
-            'Units Risked': st.column_config.TextColumn('Units Risked', width='medium'),
-            'Units Won': st.column_config.TextColumn('Units Won', width='medium'),
             'Net Units': st.column_config.TextColumn('Net Units', width='medium'),
             'ROI': st.column_config.TextColumn('ROI', width='small')
         }
@@ -199,24 +255,22 @@ try:
     # Recent Plays Section
     st.header("Recent Plays")
 
-    # Show last 10 plays
-    recent_plays = df.sort_values('DATE', ascending=False).head(10)
+    recent_plays = df.sort_values('DATE', ascending=False)
 
-    display_df = recent_plays[['DATE', 'PLAY', 'ODDS', 'MEMBER', 'MASTER', 'UNITS_OUT', 'UNITS_IN']].copy()
+    display_df = recent_plays[['DATE', 'PLAY', 'ODDS', 'MEMBER', 'MASTER']].copy()
     display_df['DATE'] = display_df['DATE'].dt.strftime('%b %d, %Y')
 
     st.dataframe(
         display_df,
         hide_index=True,
         use_container_width=True,
+        height=400,
         column_config={
             'DATE': st.column_config.TextColumn('Date', width='small'),
             'PLAY': st.column_config.TextColumn('Play', width='large'),
             'ODDS': st.column_config.TextColumn('Odds', width='small'),
             'MEMBER': st.column_config.TextColumn('Analyst', width='medium'),
-            'MASTER': st.column_config.TextColumn('Result', width='small'),
-            'UNITS_OUT': st.column_config.NumberColumn('Units Risked', width='small', format="%.2f"),
-            'UNITS_IN': st.column_config.NumberColumn('Units Won', width='small', format="%.2f")
+            'MASTER': st.column_config.TextColumn('Result', width='small')
         }
     )
 
@@ -253,9 +307,8 @@ try:
         # Display all plays for the member
         st.subheader(f"All Plays by {selected_member}")
 
-        display_member_df = member_plays[['DATE', 'PLAY', 'ODDS', 'MASTER', 'UNITS_OUT', 'UNITS_IN']].copy()
+        display_member_df = member_plays[['DATE', 'PLAY', 'ODDS', 'MASTER']].copy()
         display_member_df['DATE'] = display_member_df['DATE'].dt.strftime('%b %d, %Y')
-        display_member_df['Net'] = display_member_df['UNITS_IN'] - display_member_df['UNITS_OUT']
 
         st.dataframe(
             display_member_df,
@@ -265,10 +318,7 @@ try:
                 'DATE': st.column_config.TextColumn('Date', width='small'),
                 'PLAY': st.column_config.TextColumn('Play', width='large'),
                 'ODDS': st.column_config.TextColumn('Odds', width='small'),
-                'MASTER': st.column_config.TextColumn('Result', width='small'),
-                'UNITS_OUT': st.column_config.NumberColumn('Units Risked', width='small', format="%.2f"),
-                'UNITS_IN': st.column_config.NumberColumn('Units Won', width='small', format="%.2f"),
-                'Net': st.column_config.NumberColumn('Net', width='small', format="%+.2f")
+                'MASTER': st.column_config.TextColumn('Result', width='small')
             }
         )
 
