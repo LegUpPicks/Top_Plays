@@ -88,7 +88,7 @@ try:
     top5_units_won = top5_df['UNITS_IN'].sum()
     top5_net_units = top5_units_won - top5_units_risked
     top5_roi = (top5_net_units / top5_units_risked * 100) if top5_units_risked > 0 else 0
-    top5_win_rate = (top5_wins / top5_total_plays * 100) if top5_total_plays > 0 else 0
+    top5_win_rate = (top5_wins / (top5_wins + top5_losses) * 100) if (top5_wins + top5_losses) > 0 else 0
 
     # First row: Total Plays, Wins, Losses, Pushes
     t5_col1, t5_col2, t5_col3, t5_col4 = st.columns(4)
@@ -124,7 +124,7 @@ try:
         a_units_won = analyst_df['UNITS_IN'].sum()
         a_net_units = a_units_won - a_units_risked
         a_roi = (a_net_units / a_units_risked * 100) if a_units_risked > 0 else 0
-        a_win_rate = (a_wins / a_total * 100) if a_total > 0 else 0
+        a_win_rate = (a_wins / (a_wins + a_losses) * 100) if (a_wins + a_losses) > 0 else 0
 
         top5_stats.append({
             'Analyst': analyst,
@@ -169,7 +169,7 @@ try:
     total_units_won = df['UNITS_IN'].sum()
     net_units = total_units_won - total_units_risked
     roi = (net_units / total_units_risked * 100) if total_units_risked > 0 else 0
-    win_rate = (wins / total_plays * 100) if total_plays > 0 else 0
+    win_rate = (wins / (wins + losses) * 100) if (wins + losses) > 0 else 0
 
     # First row: Total Plays, Wins, Losses, Pushes
     col1, col2, col3, col4 = st.columns(4)
@@ -213,7 +213,7 @@ try:
         m_units_won = member_df['UNITS_IN'].sum()
         m_net_units = m_units_won - m_units_risked
         m_roi = (m_net_units / m_units_risked * 100) if m_units_risked > 0 else 0
-        m_win_rate = (m_wins / m_total * 100) if m_total > 0 else 0
+        m_win_rate = (m_wins / (m_wins + m_losses) * 100) if (m_wins + m_losses) > 0 else 0
 
         member_stats.append({
             'Analyst': member,
@@ -292,7 +292,7 @@ try:
         m_units_won = m_df['UNITS_IN'].sum()
         m_net = m_units_won - m_units_risked
         m_roi = (m_net / m_units_risked * 100) if m_units_risked > 0 else 0
-        m_win_rate = (m_wins / m_total * 100) if m_total > 0 else 0
+        m_win_rate = (m_wins / (m_wins + m_losses) * 100) if (m_wins + m_losses) > 0 else 0
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
