@@ -257,7 +257,9 @@ try:
 
     recent_plays = df.sort_values('DATE', ascending=False)
 
-    display_df = recent_plays[['DATE', 'PLAY', 'ODDS', 'MEMBER', 'MASTER']].copy()
+    display_df = recent_plays[['DATE', 'PLAY', 'ODDS', 'MEMBER', 'MASTER', 'UNITS_IN', 'UNITS_OUT']].copy()
+    display_df['Units'] = display_df['UNITS_IN'] - display_df['UNITS_OUT']
+    display_df = display_df.drop(['UNITS_IN', 'UNITS_OUT'], axis=1)
     display_df['DATE'] = display_df['DATE'].dt.strftime('%b %d, %Y')
 
     st.dataframe(
@@ -270,7 +272,8 @@ try:
             'PLAY': st.column_config.TextColumn('Play', width='large'),
             'ODDS': st.column_config.TextColumn('Odds', width='small'),
             'MEMBER': st.column_config.TextColumn('Analyst', width='medium'),
-            'MASTER': st.column_config.TextColumn('Result', width='small')
+            'MASTER': st.column_config.TextColumn('Result', width='small'),
+            'Units': st.column_config.NumberColumn('Units', width='small', format='%+.2f')
         }
     )
 
